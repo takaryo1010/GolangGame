@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ebitenゲームの埋め込み</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <h1>Climb Only</h1>
+    <script src="https://cdn.jsdelivr.net/gh/golang/go/misc/wasm/wasm_exec.js"></script>
+
+    <script>
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            requestAnimationFrame(go.run(result.instance));
+        });
+    </script>
+</body>
+</html>

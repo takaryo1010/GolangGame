@@ -1,0 +1,9 @@
+
+    canvas {
+        width: 640px;
+        height: 480px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* これを追加すると、bodyの外側にスクロールバーが表示されなくなります */
+        
+    }

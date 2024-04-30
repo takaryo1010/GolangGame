@@ -1,0 +1,4 @@
+github.com/go-text/typesetting v0.1.1-0.20240325125605-c7936fe59984 h1:NwCC36eQsDf1xVZG9jD7ngXNNjsvk8KXky15ogA1Vo0=
+github.com/go-text/typesetting v0.1.1-0.20240325125605-c7936fe59984/go.mod h1:2+owI/sxa73XA581LAzVuEBZ3WEEV2pXeDswCH/3i1I=
+golang.org/x/text v0.14.0 h1:ScX5w1eTa3QqT8oi6+ziP7dTV1S2+ALU0bI+0zXKWiQ=
+golang.org/x/text v0.14.0/go.mod h1:18ZOQIKpY8NJVqYksKHtTdi31H5itFRjB5/qKTNYzSU=
