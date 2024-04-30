@@ -60,7 +60,7 @@ func (player *Player) PlayerMove(screenHeight, screenWidth float64, platforms []
 		isOnGround = true
 	}
 	if isOnGround {
-		if ebiten.IsKeyPressed(ebiten.KeyW) {
+		if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeySpace)|| ebiten.IsKeyPressed(ebiten.KeyUp){
 			if !player.IsJumping {
 				player.VelY = -player.Jump
 				player.IsJumping = true
@@ -86,12 +86,12 @@ func (player *Player) PlayerMove(screenHeight, screenWidth float64, platforms []
 		}
 	}
 	// 横方向の移動処理
-	if ebiten.IsKeyPressed(ebiten.KeyA) {
+	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		player.VelX -= player.Speed / 9
 		if player.VelX < -player.Speed {
 			player.VelX = -player.Speed
 		}
-	} else if ebiten.IsKeyPressed(ebiten.KeyD) {
+	} else if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyRight){
 		player.VelX += player.Speed / 9
 		if player.VelX > player.Speed {
 			player.VelX = player.Speed

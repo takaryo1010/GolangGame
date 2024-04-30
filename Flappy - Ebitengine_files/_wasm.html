@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!-- saved from url=(0040)https://ebitengine.org/_wasm.html?flappy -->
+<html style="height: 100%; margin: 0px; padding: 0px;"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <link rel="stylesheet" type="text/css" href="./normalize.min.css">
+    <link rel="stylesheet" type="text/css" href="./style(1).css">
+    <style>
+      body {
+          padding: 0 24px;
+      }
+    </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1"></head>
+  <body style="background-color: rgb(0, 0, 0); height: 100%; margin: 0px; padding: 0px;">
+    <!-- Polyfill for the old Edge browser -->
+    <script src="./encoding.min.js.ダウンロード"></script>
+    <script src="./wasm_exec.js.ダウンロード"></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', async () => {
+          const go = new Go();
+          const name = window.location.search.substring(1);
+          let url = `https://storage.googleapis.com/ebiten-dot-org-wasm/${name}.wasm`;
+          if (location.hostname === 'localhost') {
+              const params = new URLSearchParams(window.parent.location.search);
+              if (params.has('wasmurl')) {
+                  url = params.get('wasmurl');
+              }
+          }
+
+          // Polyfill
+          if (!WebAssembly.instantiateStreaming) {
+              WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                  const source = await (await resp).arrayBuffer();
+                  return await WebAssembly.instantiate(source, importObject);
+              };
+          }
+
+          const result = await WebAssembly.instantiateStreaming(await fetch(url), go.importObject).catch((err) => {
+	      console.error(err);
+          });
+          document.getElementById('loading').remove();
+          go.run(result.instance);
+      });
+    </script>
+    
+  
+
+<canvas width="640" height="480" tabindex="1" style="width: 100%; height: 100%; margin: 0px; padding: 0px; outline: none;"></canvas></body></html>
