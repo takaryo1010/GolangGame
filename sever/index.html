@@ -1,39 +1,7 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <style type="text/css">
-        html,
-        body {
-            width: 640px;
-            height: 480px;
-            margin: 0;
-            padding: 0;
-            border: 0;
-            overflow: hidden;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            background-color: antiquewhite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
 
-        body {
-            background-color: rgb(0, 0, 0);
-        }
-
-        body::-webkit-scrollbar {
-            display: none;
-        }
-
-        canvas {
-            display: block;
-            margin: auto;
-        }
-        
-    </style>
-</head>
 
 <body>
     <div class="game" style="width: 640px; height: 480px;">
@@ -49,7 +17,7 @@
             }
 
             const go = new Go();
-            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(result => {
+            WebAssembly.instantiateStreaming(fetch("./main.wasm"), go.importObject).then(result => {
                 go.run(result.instance);
             });
         </script>
