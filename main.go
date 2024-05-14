@@ -4,12 +4,12 @@ import (
     "fmt"
     "image/color"
     "log"
-    "net/http"
-    "net/url"
-    "encoding/json"
     "strings"
     "strconv"
     "io"
+    "os"
+    "sort"
+    "encoding/csv"
     "github.com/hajimehoshi/ebiten/v2"
     "github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
     "github.com/hajimehoshi/ebiten/v2/text"
@@ -71,6 +71,13 @@ func init() {
     if err != nil {
         log.Fatal(err)
     }
+    if _, err := os.Stat("ranking.csv"); os.IsNotExist(err) {
+		file, err := os.Create("ranking.csv")
+		if err != nil {
+			log.Fatal(err)
+		}
+		file.Close()
+	}
 }
 
 const (
@@ -99,8 +106,10 @@ func (g *Game) Update() error {
     }
     if!ebiten.IsKeyPressed(ebiten.KeyEnter)&&!IsKeyPressedEnter{
         IsKeyPressedEnter = true
-        g.UploadScore()
-        g.ReadScore()
+        // g.UploadScore()
+        // g.ReadScore()
+        readScores()
+        writeScore(g.playerName, g.hiscore)
     }
     if !g.started {
         // ゲームが開始されていない場合は、名前の入力を受け付ける
@@ -109,8 +118,10 @@ func (g *Game) Update() error {
             g.SetName(g.currentInput)
             g.currentInput = ""
             g.inputInProgress = false
-            g.ReadScore()
-            g.UploadScore()
+            // g.ReadScore()
+            // g.UploadScore()
+            readScores()
+            writeScore(g.playerName, g.hiscore)
             IsKeyPressedEnter = true
         } else if ebiten.IsKeyPressed(ebiten.KeyBackspace)&&IsKeyPressedBackescape {
             // バックスペースが押されたら、入力文字列から最後の文字を削除する
@@ -129,6 +140,10 @@ func (g *Game) Update() error {
         if !g.inputInProgress {
             // 入力が進行中でない場合は、名前の入力を促す
             g.greeting = "Enter your name: " + g.currentInput
+        }
+        if g.hiscore < -(int(player.Posy)-464) {
+            g.hiscore = -(int(player.Posy) - 464)
+            writeScore(g.playerName, g.hiscore)
         }
         return nil
     }
@@ -223,56 +238,61 @@ func (g *Game) SetName(name string) {
     // ゲームを開始するフラグを設定
     g.started = true
 }
-func(g *Game) UploadScore(){
-    score := strconv.Itoa(g.hiscore)
-    resp, err := http.PostForm(myurl+"/write",
-    	url.Values{"name": {g.playerName}, "score": {score}})
-    if err != nil {
-        log.Fatal(err)
-        return 
-    }
-    defer resp.Body.Close()
-    if resp.StatusCode == 200 {
-        return 
-    } else {
-        fmt.Println(resp.StatusCode)
-    }
+// func(g *Game) UploadScore(){
+//     score := strconv.Itoa(g.hiscore)
+//     resp, err := http.PostForm(myurl+"/write",
+//     	url.Values{"name": {g.playerName}, "score": {score}})
+//     if err != nil {
+//         log.Fatal(err)
+//         return 
+//     }
+//     defer resp.Body.Close()
+//     if resp.StatusCode == 200 {
+//         return 
+//     } else {
+//         fmt.Println(resp.StatusCode)
+//     }
     
-    return 
-}
-func(g *Game) ReadScore(){
+//     return 
+// }
+// func(g *Game) ReadScore(){
 
-    resp, err := http.Get(myurl+"/read")
-    if err != nil {
-        log.Fatal(err)
-        return
-    }
-    defer resp.Body.Close()
-    fmt.Println(resp)
-    body, _ := io.ReadAll(resp.Body)
-    if resp.StatusCode == 200 {
+//     resp, err := http.Get(myurl+"/read")
+//     if err != nil {
+//         log.Fatal(err)
+//         return
+//     }
+//     defer resp.Body.Close()
+//     fmt.Println(resp)
+//     body, _ := io.ReadAll(resp.Body)
+//     if resp.StatusCode == 200 {
 
-        g.scores = []person{}
-        var persons []person
+//         g.scores = []person{}
+//         var persons []person
 
-        err := json.Unmarshal(body, &persons)
-        if err != nil {
-            log.Fatal(err)
-        }
-        g.scores = persons
-        fmt.Println(g.scores)
-        return 
-    } else {
-        fmt.Println(resp.StatusCode)
-    }
+//         err := json.Unmarshal(body, &persons)
+//         if err != nil {
+//             log.Fatal(err)
+//         }
+//         g.scores = persons
+//         fmt.Println(g.scores)
+//         return 
+//     } else {
+//         fmt.Println(resp.StatusCode)
+//     }
     
-    return 
-}
+//     return 
+// }
 func (g *Game) DrawScores(screen *ebiten.Image) {
+    scores, err := readScores()
+    if err != nil {
+        log.Fatal(err)
+    }
+
     // スコアを描画
     text.Draw(screen, "High Scores", mplusNormalFontMini, screenWidth, 80, color.Black)
-    for i, p := range g.scores {
-        text.Draw(screen, fmt.Sprintf("%d. %s", i+1, p.Name, ), mplusNormalFontMini, screenWidth, 110+i*48, color.Black)
+    for i, p := range scores {
+        text.Draw(screen, fmt.Sprintf("%d. %s", i+1, p.Name), mplusNormalFontMini, screenWidth, 110+i*48, color.Black)
         text.Draw(screen, fmt.Sprintf("score:%d", p.Score), mplusNormalFontMini, screenWidth, 110+i*48+24, color.Black)
     }
 }
@@ -290,4 +310,78 @@ func main() {
     if err := ebiten.RunGame(game); err != nil {
         log.Fatal(err)
     }
+}
+func writeScore(name string, score int) {
+	// スコアを読み込む
+	scores, err := readScores()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// 新しいスコアを追加
+	newScore := person{Name: name, Score: score}
+	updatedScores := append(scores, newScore)
+
+	// 名前が重複している場合は、スコアが高いものだけを残す
+	scoreMap := make(map[string]int)
+	for _, s := range updatedScores {
+		if _, ok := scoreMap[s.Name]; !ok || s.Score > scoreMap[s.Name] {
+			scoreMap[s.Name] = s.Score
+		}
+	}
+	var filteredScores []person
+	for name, score := range scoreMap {
+		filteredScores = append(filteredScores, person{Name: name, Score: score})
+	}
+
+	// スコアをスコアの高い順にソート
+	sort.Slice(filteredScores, func(i, j int) bool {
+		return filteredScores[i].Score > filteredScores[j].Score
+	})
+
+	// 上位10件のスコアのみを保持
+	if len(filteredScores) > 10 {
+		filteredScores = filteredScores[:10]
+	}
+
+	// スコアをファイルに書き込む
+	file, err := os.Create("ranking.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	for _, s := range filteredScores {
+		err := writer.Write([]string{s.Name, strconv.Itoa(s.Score)})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	writer.Flush()
+}
+
+
+func readScores() ([]person, error) {
+	file, err := os.Open("ranking.csv")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	var scores []person
+	for {
+		record, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		score, _ := strconv.Atoi(record[1])
+		scores = append(scores, person{Name: record[0], Score: score})
+	}
+
+	return scores, nil
 }
