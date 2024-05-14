@@ -27,7 +27,7 @@ var lastY float64
 var IsKeyPressed0 bool
 var IsKeyPressedBackescape bool
 var IsKeyPressedEnter bool
-var myurl string = "http://160.251.177.195:8080"
+var myurl string = "http://localhost:1323"
 type person struct {
     Name string `json:"Name"`
     Score int    `json:"Score"`
